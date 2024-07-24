@@ -43,15 +43,19 @@ document.onkeydown = (e) => {
   e.stopPropagation();
   switch (e.key) {
     case "ArrowUp":
+      if (direction === "down") return;
       direction = "up";
       break;
     case "ArrowDown":
+      if (direction === "up") return
       direction = "down";
       break;
     case "ArrowLeft":
+      if (direction === "right") return;
       direction = "left";
       break;
     case "ArrowRight":
+      if (direction === "left") return;
       direction = "right";
       break;
   }
