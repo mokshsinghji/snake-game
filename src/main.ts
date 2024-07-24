@@ -78,7 +78,9 @@ async function drawFrame() {
   ctx.fillStyle = "lightgreen";
 
   if (snakeBody[0][0] === food[0][0] && snakeBody[0][1] === food[0][1]) {
-    food[0] = [Math.floor(Math.random() * width), Math.floor(Math.random() * height)];
+    while (snakeBody.findIndex(s => s[0] === food[0][0] && s[1] === food[0][1]) !== -1) {
+      food[0] = [Math.floor(Math.random() * width), Math.floor(Math.random() * height)];
+    }
     console.log(food[0]);
     snakeBody.push(snakeBody[snakeBody.length - 1]);
   }
