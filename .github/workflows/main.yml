@@ -6,7 +6,7 @@ on:
 jobs:
   build-vite:
     name: "Build Vite application"
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
   
     steps:
     - name: Setup Node.js environment
