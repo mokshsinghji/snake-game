@@ -10,7 +10,7 @@ let frame = 0;
 let startTime = performance.now();
 
 const fpsEl = document.getElementById("fps");
-const fps = 3;
+let fps = 3;
 
 const snakeBodySize = 25;
 
@@ -112,9 +112,11 @@ function getDirection(x1: number, y1: number, x2: number, y2: number): "up" | "d
 async function drawFrame() {
   if (snakeBody.slice(1).findIndex(s => s[0] === snakeBody[0][0] && s[1] === snakeBody[0][1]) !== -1) {
     stopped = true;
+    document.body.prepend(document.createTextNode("You lost! Your score was " + snakeBody.length));
     await new Promise(resolve => setTimeout(resolve, 1000));
     stopped = false;
     snakeBody = [[0, 0]];
+    fps = 3;
   }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -141,6 +143,9 @@ async function drawFrame() {
 
     const newPosition = returnNewPosition(snakeBody[snakeBody.length - 1], 1, canvas.width / snakeBodySize, canvas.height / snakeBodySize, inversedDirections[currentDirection]);
     snakeBody.push(newPosition);
+
+    fps = Math.min(15, 3 + (snakeBody.length * 3 / 4)); // by the time you are a 20 length, fps should be at 15 and then stop
+    console.log("setting fps to", fps);
   }
 
   for (let i = 0; i < snakeBody.length; i++) {
@@ -152,7 +157,7 @@ async function drawFrame() {
       const currentDirection = getDirection(...snakeBody[snakeBody.length - 1], ...snakeBody[snakeBody.length - 2]);
       ctx.drawImage(images[inversedDirections[currentDirection]], x * snakeBodySize, y * snakeBodySize, snakeBodySize, snakeBodySize);
     } else {
-      ctx.fillRect(x * speed / fps, y * speed / fps, snakeBodySize, snakeBodySize);
+      ctx.fillRect(x * snakeBodySize, y * snakeBodySize, snakeBodySize, snakeBodySize);
     }
   }
 
@@ -173,7 +178,7 @@ async function drawFrame() {
   frame++;
 
   if (delta > 300) {
-    fpsEl!.innerText = `FPS: ${Math.round(frame / (delta / 1000))}`;
+    fpsEl!.innerText = `FPS: ${Math.round(frame / (delta / 300))}`;
 
     startTime = currentTime;
     frame = 0;
@@ -189,7 +194,11 @@ async function drawFrame() {
   // document.body.appendChild(framesElement);
 }
 
-setInterval(() => {
-  if (stopped) return;
-  setTimeout(drawFrame, 0);
-}, 1000 / fps);
+function createTimeout() {
+  return setTimeout(() => {
+    if (!stopped) drawFrame();
+    setTimeout(createTimeout, 1000 / fps);
+  }, 1000 / fps);
+}
+
+createTimeout();
