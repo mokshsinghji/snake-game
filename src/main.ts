@@ -19,7 +19,9 @@ const speed = snakeBodySize * fps;
 
 let direction: "up" | "down" | "left" | "right" = "up";
 
-function returnNewPosition(orig: [number, number], toMove: number, width: number, height: number): [number, number] {
+type Direction = "up" | "down" | "left" | "right";
+
+function returnNewPosition(orig: [number, number], toMove: number, width: number, height: number, direction: Direction): [number, number] {
   switch (direction) {
     case "up":
       if (orig[1] - toMove < 0) {
@@ -85,13 +87,13 @@ const inversedDirections = {
   "down": "up",
   "left": "right",
   "right": "left"
-}
+} as const;
 
 let oneOldDirection: "up" | "down" | "left" | "right" = direction;
 
 let oldDirections: ("up" | "down" | "left" | "right")[][] = Array(width).fill(Array(height).fill("up"));
 
-function getDirection(x1: number, y1: number, x2: number, y2: number) {
+function getDirection(x1: number, y1: number, x2: number, y2: number): "up" | "down" | "left" | "right" {
   if (x1 === x2) {
     if (y1 < y2) {
       return "down";
@@ -108,6 +110,12 @@ function getDirection(x1: number, y1: number, x2: number, y2: number) {
 }
 
 async function drawFrame() {
+  if (snakeBody.slice(1).findIndex(s => s[0] === snakeBody[0][0] && s[1] === snakeBody[0][1]) !== -1) {
+    stopped = true;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    stopped = false;
+    snakeBody = [[0, 0]];
+  }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = "gold";
@@ -122,7 +130,17 @@ async function drawFrame() {
       food[0] = [Math.floor(Math.random() * width), Math.floor(Math.random() * height)];
     }
     console.log(food[0]);
-    snakeBody.push(snakeBody[snakeBody.length - 1]);
+
+    let currentDirection;
+
+    if (snakeBody.length >= 2) {
+      currentDirection = getDirection(...snakeBody[snakeBody.length - 1], ...snakeBody[snakeBody.length - 2])
+    } else {
+      currentDirection = direction;
+    }
+
+    const newPosition = returnNewPosition(snakeBody[snakeBody.length - 1], 1, canvas.width / snakeBodySize, canvas.height / snakeBodySize, inversedDirections[currentDirection]);
+    snakeBody.push(newPosition);
   }
 
   for (let i = 0; i < snakeBody.length; i++) {
@@ -131,14 +149,15 @@ async function drawFrame() {
     if (i === 0) {
       ctx.drawImage(images[oneOldDirection], x * snakeBodySize, y * snakeBodySize, snakeBodySize, snakeBodySize);
     } else if (i === snakeBody.length - 1) {
-      ctx.drawImage(images[inversedDirections[getDirection(...snakeBody[snakeBody.length - 1], ...snakeBody[snakeBody.length - 2])]], x * snakeBodySize, y * snakeBodySize, snakeBodySize, snakeBodySize);
+      const currentDirection = getDirection(...snakeBody[snakeBody.length - 1], ...snakeBody[snakeBody.length - 2]);
+      ctx.drawImage(images[inversedDirections[currentDirection]], x * snakeBodySize, y * snakeBodySize, snakeBodySize, snakeBodySize);
     } else {
       ctx.fillRect(x * speed / fps, y * speed / fps, snakeBodySize, snakeBodySize);
     }
   }
 
   let snakeBodyCopy = snakeBody.slice(0, snakeBody.length - 1);
-  snakeBodyCopy[0] = returnNewPosition(snakeBody[0], 1, canvas.width / snakeBodySize, canvas.height / snakeBodySize);
+  snakeBodyCopy[0] = returnNewPosition(snakeBody[0], 1, canvas.width / snakeBodySize, canvas.height / snakeBodySize, direction);
   for (let i = 1; i < snakeBody.length; i++) {
     snakeBodyCopy[i] = snakeBody[i - 1];
   }
@@ -147,12 +166,6 @@ async function drawFrame() {
 
   snakeBody = snakeBodyCopy;
 
-  if (snakeBody.slice(1).findIndex(s => s[0] === snakeBody[0][0] && s[1] === snakeBody[0][1]) !== -1) {
-    stopped = true;
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    stopped = false;
-    snakeBody = [[0, 0]];
-  }
   console.log(snakeBody.slice(1, snakeBody.length - 1).indexOf(snakeBody[0]));
 
   const currentTime = performance.now();
