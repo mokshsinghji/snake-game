@@ -68,7 +68,7 @@ const food = [[Math.floor(Math.random() * width), Math.floor(Math.random() * hei
 
 function getImage(direction: "up" | "down" | "left" | "right") {
   const image = new Image();
-  image.src = `/dist/corner-${direction}.png`;
+  image.src = `/snake-game/corner-${direction}.png`;
   return image;
 }
 
