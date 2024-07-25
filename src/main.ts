@@ -14,9 +14,6 @@ let fps = 3;
 
 const snakeBodySize = 25;
 
-
-const speed = snakeBodySize * fps;
-
 let direction: "up" | "down" | "left" | "right" = "up";
 
 type Direction = "up" | "down" | "left" | "right";
