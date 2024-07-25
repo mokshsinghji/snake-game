@@ -23,4 +23,4 @@ jobs:
     - name: Build application
       run: |
         pnpm i
-        pnpm run build --if-present
+        pnpm run build 
